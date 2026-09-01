@@ -15,7 +15,7 @@
     .input-group { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: bold; }
     input[type="file"], input[type="text"], input[type="color"] { padding: 6px; border: 1px solid #ccc; border-radius: 4px; }
     .color-inputs { display: flex; gap: 6px; }
-    .color-inputs input[type="color"] { width: 100%; height: 32px; padding: 0; cursor: pointer; }
+    .color-inputs input[type="color"] { width: 100%; height: 32px; padding: 0; cursor: pointer; border: none; background: none; }
     button { padding: 10px; background: #4a90e2; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
     button:hover { background: #357abd; }
     .btn-save { margin-top: auto; background: #2ec4b6; font-size: 14px; padding: 12px; }
@@ -35,7 +35,7 @@
       <div class="input-group"><label>중앙 일러스트</label><input type="file" id="up-main" accept="image/*"></div>
 
       <h3>캐릭터 1 (좌측)</h3>
-      <div class="input-group"><label>글 설명 (확장됨)</label><input type="text" id="txt-desc-1" placeholder="캐릭터 1 설명"></div>
+      <div class="input-group"><label>글 설명</label><input type="text" id="txt-desc-1" placeholder="캐릭터 1 설명"></div>
       <div class="input-group">
         <label>컬러 팔레트 (3색)</label>
         <div class="color-inputs">
@@ -44,14 +44,14 @@
           <input type="color" id="col-1-3" value="#fdffb6">
         </div>
       </div>
-      <div class="input-group"><label>두상 (확장됨)</label><input type="file" id="up-head-1" accept="image/*"></div>
-      <div class="input-group"><label>전신 (확장됨)</label><input type="file" id="up-full-1" accept="image/*"></div>
+      <div class="input-group"><label>두상</label><input type="file" id="up-head-1" accept="image/*"></div>
+      <div class="input-group"><label>전신</label><input type="file" id="up-full-1" accept="image/*"></div>
       <div class="input-group"><label>오브젝트</label><input type="file" id="up-etc-1" accept="image/*"></div>
       <div class="input-group"><label>동물화</label><input type="file" id="up-ani-1" accept="image/*"></div>
-      <div class="input-group"><label>SD 전신 (축소됨)</label><input type="file" id="up-sub-1" accept="image/*"></div>
+      <div class="input-group"><label>SD 전신</label><input type="file" id="up-sub-1" accept="image/*"></div>
 
       <h3>캐릭터 2 (우측)</h3>
-      <div class="input-group"><label>글 설명 (확장됨)</label><input type="text" id="txt-desc-2" placeholder="캐릭터 2 설명"></div>
+      <div class="input-group"><label>글 설명</label><input type="text" id="txt-desc-2" placeholder="캐릭터 2 설명"></div>
       <div class="input-group">
         <label>컬러 팔레트 (3색)</label>
         <div class="color-inputs">
@@ -60,11 +60,11 @@
           <input type="color" id="col-2-3" value="#a0c4ff">
         </div>
       </div>
-      <div class="input-group"><label>두상 (확장됨)</label><input type="file" id="up-head-2" accept="image/*"></div>
-      <div class="input-group"><label>전신 (확장됨)</label><input type="file" id="up-full-2" accept="image/*"></div>
+      <div class="input-group"><label>두상</label><input type="file" id="up-head-2" accept="image/*"></div>
+      <div class="input-group"><label>전신</label><input type="file" id="up-full-2" accept="image/*"></div>
       <div class="input-group"><label>오브젝트</label><input type="file" id="up-etc-2" accept="image/*"></div>
       <div class="input-group"><label>동물화</label><input type="file" id="up-ani-2" accept="image/*"></div>
-      <div class="input-group"><label>SD 전신 (축소됨)</label><input type="file" id="up-sub-2" accept="image/*"></div>
+      <div class="input-group"><label>SD 전신</label><input type="file" id="up-sub-2" accept="image/*"></div>
 
       <h3>하단 정보</h3>
       <div class="input-group"><label>테마곡 (곡명 - 아티스트)</label><input type="text" id="txt-theme" placeholder="Song Title - Artist"></div>
@@ -91,9 +91,6 @@
 
     bgLayer.add(new Konva.Rect({ x: 0, y: 0, width: WIDTH, height: HEIGHT, fill: '#ffffff' }));
 
-    // 배치 좌표 설정 (요청사항 반영)
-    // 메인 폭 축소(360px), 두상/전신 너비 확장(150px)
-    // SD 전신 세로 축소(150px), 글 설명 세로 확장(100px), 오브젝트 슬롯 변경
     const boxes = [
       // 좌측 (캐릭터 1)
       { id: 'h1', x: 20, y: 20, w: 150, h: 140, label: '두상' },
@@ -104,7 +101,7 @@
       { id: 'a1', x: 180, y: 290, w: 120, h: 110, label: '동물화' },
       { id: 's1', x: 180, y: 410, w: 120, h: 170, label: 'SD 전신' },
 
-      // 중앙 메인 (너비 축소: 360px)
+      // 중앙 메인
       { id: 'm', x: 310, y: 20, w: 480, h: 560, label: '메인 페어' },
 
       // 우측 (캐릭터 2)
@@ -125,7 +122,6 @@
     const boxGroups = {};
 
     boxes.forEach(b => {
-      // 이미지 구역 Clipping 그룹
       const group = new Konva.Group({
         x: b.x, y: b.y, width: b.w, height: b.h,
         clipFunc: function(ctx) { ctx.rect(0, 0, b.w, b.h); }
@@ -133,27 +129,25 @@
       imageLayer.add(group);
       boxGroups[b.id] = group;
 
-      // 박스 외곽선
       frameLayer.add(new Konva.Rect({
         x: b.x, y: b.y, width: b.w, height: b.h,
         stroke: '#bbb', strokeWidth: 1.5, cornerRadius: 4, listening: false
       }));
 
-      // 기본 라벨 표시 (player/palette 제외)
       if (b.type !== 'player' && b.type !== 'palette_1' && b.type !== 'palette_2') {
         frameLayer.add(new Konva.Text({
           x: b.x + 6, y: b.y + 6, text: b.label, fontSize: 11, fill: '#aaa', listening: false
         }));
       }
 
-      // 팔레트 생성
+      // 팔레트 영역 사각형 생성
       if (b.type === 'palette_1' || b.type === 'palette_2') {
         const pGroup = new Konva.Group({ x: b.x + 6, y: b.y + 5 });
         paletteNodes[b.type] = [];
         for (let i = 0; i < 3; i++) {
           const rect = new Konva.Rect({
             x: i * 36, y: 0, width: 30, height: 20,
-            fill: '#eee', stroke: '#999', strokeWidth: 1, cornerRadius: 3
+            fill: '#ffffff', stroke: '#999', strokeWidth: 1, cornerRadius: 3
           });
           pGroup.add(rect);
           paletteNodes[b.type].push(rect);
@@ -162,36 +156,20 @@
       }
     });
 
-    // 테마곡 플레이어 UI 생성
-    const tmBox = boxes.find(b => b.id === tmBoxId || b.id === 'tm');
+    // 플레이어 UI
+    const tmBox = boxes.find(b => b.id === 'tm');
     if (tmBox) {
       const pGroup = new Konva.Group({ x: tmBox.x, y: tmBox.y });
-
-      // 재생 버튼 (▶)
       pGroup.add(new Konva.Circle({ x: 25, y: 42, radius: 14, fill: '#4a90e2' }));
-      const playIcon = new Konva.Path({
-        x: 21, y: 35,
-        data: 'M0 0 L12 7 L0 14 Z',
-        fill: '#ffffff'
-      });
-      pGroup.add(playIcon);
-
-      // 재생바 (Track)
+      pGroup.add(new Konva.Path({ x: 21, y: 35, data: 'M0 0 L12 7 L0 14 Z', fill: '#ffffff' }));
       pGroup.add(new Konva.Rect({ x: 50, y: 48, width: tmBox.w - 110, height: 6, fill: '#e0e0e0', cornerRadius: 3 }));
-      // 재생 진행바 (Progress)
       pGroup.add(new Konva.Rect({ x: 50, y: 48, width: (tmBox.w - 110) * 0.4, height: 6, fill: '#4a90e2', cornerRadius: 3 }));
-      // 재생 핸들 (Knob)
       pGroup.add(new Konva.Circle({ x: 50 + (tmBox.w - 110) * 0.4, y: 51, radius: 6, fill: '#4a90e2' }));
-
-      // 타임스탬프
-      pGroup.add(new Konva.Text({
-        x: tmBox.w - 52, y: 44, text: '1:24 / 3:45', fontSize: 10, fill: '#888'
-      }));
-
+      pGroup.add(new Konva.Text({ x: tmBox.w - 52, y: 44, text: '1:24 / 3:45', fontSize: 10, fill: '#888' }));
       frameLayer.add(pGroup);
     }
 
-    // 이미지 바인딩 및 휠 줌/드래그 연동
+    // 이미지 바인딩
     function bindImage(inputId, boxId) {
       const box = boxes.find(b => b.id === boxId);
       const group = boxGroups[boxId];
@@ -207,10 +185,7 @@
           img.onload = () => {
             group.destroyChildren();
 
-            const kImg = new Konva.Image({
-              x: 0, y: 0, image: img, draggable: true
-            });
-
+            const kImg = new Konva.Image({ x: 0, y: 0, image: img, draggable: true });
             const scale = Math.max(box.w / img.width, box.h / img.height);
             kImg.scale({ x: scale, y: scale });
 
@@ -258,18 +233,30 @@
     bindText('txt-theme', 'tm', '🎵 Song Title - Artist', 18);
     bindText('txt-relation', 'rel', '💬 관계성 / 한 줄 요약');
 
-    // 팔레트 연동
+    // [핵심 수정] 팔레트 연동 및 색상 바인딩 수정
     function bindPalette(groupId, keys) {
       keys.forEach((key, idx) => {
-        document.getElementById(key).addEventListener('input', e => {
-          paletteNodes[groupId][idx].fill(e.target.value);
-          frameLayer.draw();
+        const inputEl = document.getElementById(key);
+        
+        // 색상 변경 시 이벤트 처리
+        inputEl.addEventListener('input', e => {
+          if (paletteNodes[groupId] && paletteNodes[groupId][idx]) {
+            paletteNodes[groupId][idx].fill(String(e.target.value));
+            frameLayer.batchDraw();
+          }
         });
-        paletteNodes[groupId][idx].fill(document.getElementById(key).value);
+
+        // 초기 색상 값 설정
+        if (paletteNodes[groupId] && paletteNodes[groupId][idx]) {
+          paletteNodes[groupId][idx].fill(String(inputEl.value));
+        }
       });
     }
+
+    // 팔레트 바인딩 호출 및 즉시 레이어 갱신
     bindPalette('palette_1', ['col-1-1', 'col-1-2', 'col-1-3']);
     bindPalette('palette_2', ['col-2-1', 'col-2-2', 'col-2-3']);
+    frameLayer.draw();
 
     // 저장 기능
     document.getElementById('btn-save').addEventListener('click', () => {
