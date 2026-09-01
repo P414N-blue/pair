@@ -37,7 +37,7 @@
       <h3>캐릭터 1 (좌측)</h3>
       <div class="input-group"><label>글 설명</label><input type="text" id="txt-desc-1" placeholder="캐릭터 1 설명"></div>
       <div class="input-group">
-        <label>컬러 팔레트 (3색)</label>
+        <label>컬러 팔레트</label>
         <div class="color-inputs">
           <input type="color" id="col-1-1" value="#ffadad">
           <input type="color" id="col-1-2" value="#ffd6a5">
@@ -53,7 +53,7 @@
       <h3>캐릭터 2 (우측)</h3>
       <div class="input-group"><label>글 설명</label><input type="text" id="txt-desc-2" placeholder="캐릭터 2 설명"></div>
       <div class="input-group">
-        <label>컬러 팔레트 (3색)</label>
+        <label>컬러 팔레트</label>
         <div class="color-inputs">
           <input type="color" id="col-2-1" value="#caffbf">
           <input type="color" id="col-2-2" value="#9bf6ff">
@@ -67,8 +67,9 @@
       <div class="input-group"><label>SD 전신</label><input type="file" id="up-sub-2" accept="image/*"></div>
 
       <h3>하단 정보</h3>
-      <div class="input-group"><label>테마곡 (곡명 - 아티스트)</label><input type="text" id="txt-theme" placeholder="Song Title - Artist"></div>
-      <div class="input-group"><label>관계성 요약</label><input type="text" id="txt-relation" placeholder="💬 관계성 한 줄 요약"></div>
+      <div class="input-group"><label>곡명 - 아티스트</label><input type="text" id="txt-theme" placeholder="Song Title - Artist"></div>
+      <div class="input-group"><label>테마곡 시간</label><input type="text" id="txt-time" value="1:24 / 3:45" placeholder="1:24 / 3:45"></div>
+      <div class="input-group"><label>관계성 요약</label><input type="text" id="txt-relation" placeholder="관계성 한 줄 요약"></div>
 
       <button id="btn-save" class="btn-save">🖼️ PNG 저장하기</button>
     </div>
@@ -120,6 +121,8 @@
 
     const paletteNodes = {};
     const boxGroups = {};
+    const labelNodes = {};
+    let timeTextNode = null; // 시간 텍스트 참조용 변수
 
     boxes.forEach(b => {
       const group = new Konva.Group({
@@ -135,12 +138,13 @@
       }));
 
       if (b.type !== 'player' && b.type !== 'palette_1' && b.type !== 'palette_2') {
-        frameLayer.add(new Konva.Text({
+        const labelText = new Konva.Text({
           x: b.x + 6, y: b.y + 6, text: b.label, fontSize: 11, fill: '#aaa', listening: false
-        }));
+        });
+        frameLayer.add(labelText);
+        labelNodes[b.id] = labelText;
       }
 
-      // 팔레트 영역 사각형 생성
       if (b.type === 'palette_1' || b.type === 'palette_2') {
         const pGroup = new Konva.Group({ x: b.x + 6, y: b.y + 5 });
         paletteNodes[b.type] = [];
@@ -156,18 +160,31 @@
       }
     });
 
-    // 플레이어 UI
+    // 플레이어 UI 생성
     const tmBox = boxes.find(b => b.id === 'tm');
     if (tmBox) {
       const pGroup = new Konva.Group({ x: tmBox.x, y: tmBox.y });
       pGroup.add(new Konva.Circle({ x: 25, y: 42, radius: 14, fill: '#4a90e2' }));
       pGroup.add(new Konva.Path({ x: 21, y: 35, data: 'M0 0 L12 7 L0 14 Z', fill: '#ffffff' }));
-      pGroup.add(new Konva.Rect({ x: 50, y: 48, width: tmBox.w - 110, height: 6, fill: '#e0e0e0', cornerRadius: 3 }));
-      pGroup.add(new Konva.Rect({ x: 50, y: 48, width: (tmBox.w - 110) * 0.4, height: 6, fill: '#4a90e2', cornerRadius: 3 }));
-      pGroup.add(new Konva.Circle({ x: 50 + (tmBox.w - 110) * 0.4, y: 51, radius: 6, fill: '#4a90e2' }));
-      pGroup.add(new Konva.Text({ x: tmBox.w - 52, y: 44, text: '1:24 / 3:45', fontSize: 10, fill: '#888' }));
+      pGroup.add(new Konva.Rect({ x: 50, y: 48, width: tmBox.w - 130, height: 6, fill: '#e0e0e0', cornerRadius: 3 }));
+      pGroup.add(new Konva.Rect({ x: 50, y: 48, width: (tmBox.w - 130) * 0.4, height: 6, fill: '#4a90e2', cornerRadius: 3 }));
+      pGroup.add(new Konva.Circle({ x: 50 + (tmBox.w - 130) * 0.4, y: 51, radius: 6, fill: '#4a90e2' }));
+
+      // 수정 가능한 타임스탬프 텍스트 노드
+      timeTextNode = new Konva.Text({
+        x: tmBox.w - 75, y: 44, text: '1:24 / 3:45', fontSize: 10, fill: '#888', align: 'right'
+      });
+      pGroup.add(timeTextNode);
       frameLayer.add(pGroup);
     }
+
+    // 시간 입력란 이벤트 바인딩
+    document.getElementById('txt-time').addEventListener('input', e => {
+      if (timeTextNode) {
+        timeTextNode.text(e.target.value.trim());
+        frameLayer.batchDraw();
+      }
+    });
 
     // 이미지 바인딩
     function bindImage(inputId, boxId) {
@@ -203,6 +220,11 @@
 
             group.add(kImg);
             imageLayer.draw();
+
+            if (labelNodes[boxId]) {
+              labelNodes[boxId].visible(false);
+              frameLayer.batchDraw();
+            }
           };
         };
         reader.readAsDataURL(file);
@@ -217,28 +239,33 @@
     function bindText(inputId, boxId, defaultText, offsetY = 12) {
       const box = boxes.find(b => b.id === boxId);
       const tNode = new Konva.Text({
-        x: box.x + 10, y: box.y + offsetY, text: defaultText,
+        x: box.x + 10, y: box.y + offsetY, text: '',
         fontSize: 12, fill: '#333', width: box.w - 20, wrap: 'char'
       });
       textLayer.add(tNode);
 
       document.getElementById(inputId).addEventListener('input', e => {
-        tNode.text(e.target.value || defaultText);
+        const val = e.target.value.trim();
+        tNode.text(val);
         textLayer.draw();
+
+        if (labelNodes[boxId]) {
+          labelNodes[boxId].visible(val === '');
+          frameLayer.batchDraw();
+        }
       });
     }
 
-    bindText('txt-desc-1', 'd1', '설명을 입력하세요');
-    bindText('txt-desc-2', 'd2', '설명을 입력하세요');
-    bindText('txt-theme', 'tm', '🎵 Song Title - Artist', 18);
-    bindText('txt-relation', 'rel', '💬 관계성 / 한 줄 요약');
+    bindText('txt-desc-1', 'd1', '');
+    bindText('txt-desc-2', 'd2', '');
+    bindText('txt-theme', 'tm', '', 18);
+    bindText('txt-relation', 'rel', '');
 
-    // [핵심 수정] 팔레트 연동 및 색상 바인딩 수정
+    // 팔레트 연동
     function bindPalette(groupId, keys) {
       keys.forEach((key, idx) => {
         const inputEl = document.getElementById(key);
         
-        // 색상 변경 시 이벤트 처리
         inputEl.addEventListener('input', e => {
           if (paletteNodes[groupId] && paletteNodes[groupId][idx]) {
             paletteNodes[groupId][idx].fill(String(e.target.value));
@@ -246,14 +273,12 @@
           }
         });
 
-        // 초기 색상 값 설정
         if (paletteNodes[groupId] && paletteNodes[groupId][idx]) {
           paletteNodes[groupId][idx].fill(String(inputEl.value));
         }
       });
     }
 
-    // 팔레트 바인딩 호출 및 즉시 레이어 갱신
     bindPalette('palette_1', ['col-1-1', 'col-1-2', 'col-1-3']);
     bindPalette('palette_2', ['col-2-1', 'col-2-2', 'col-2-3']);
     frameLayer.draw();
