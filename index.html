@@ -3,322 +3,223 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>대형 페어틀 메이커</title>
-  
-  <!-- Konva.js CDN -->
+  <title>커스텀 페어틀 메이커</title>
   <script src="https://unpkg.com/konva@9/konva.min.js"></script>
-
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background-color: #f0f2f5;
-      color: #333;
-    }
-
-    .container {
-      display: flex;
-      height: 100vh;
-      overflow: hidden;
-    }
-
-    /* 사이드바 스타일 */
-    .sidebar {
-      width: 320px;
-      padding: 20px;
-      background: #ffffff;
-      border-right: 1px solid #e0e0e0;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      overflow-y: auto;
-      box-shadow: 2px 0 8px rgba(0,0,0,0.05);
-      z-index: 10;
-    }
-
-    .sidebar h2 {
-      font-size: 1.2rem;
-      color: #1a1a1a;
-      border-bottom: 2px solid #4a90e2;
-      padding-bottom: 8px;
-    }
-
-    .upload-group, .text-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      font-size: 13px;
-      font-weight: 600;
-      color: #555;
-    }
-
-    input[type="file"] {
-      font-size: 12px;
-      padding: 6px;
-      background: #f8f9fa;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    input[type="text"] {
-      padding: 8px 12px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      font-size: 14px;
-      outline: none;
-    }
-
-    input[type="text"]:focus {
-      border-color: #4a90e2;
-    }
-
-    button {
-      padding: 10px;
-      background-color: #4a90e2;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: background-color 0.2s;
-    }
-
-    button:hover {
-      background-color: #357abd;
-    }
-
-    .btn-save {
-      margin-top: auto;
-      background-color: #2ec4b6;
-      font-size: 15px;
-      padding: 12px;
-    }
-
-    .btn-save:hover {
-      background-color: #239b90;
-    }
-
-    /* 캔버스 영역 스타일 */
-    .canvas-wrapper {
-      flex: 1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-      overflow: auto;
-      background-color: #e9ecef;
-    }
-
-    #container {
-      border-radius: 8px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-      background-color: #ffffff;
-      overflow: hidden;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: sans-serif; background: #e9ecef; color: #333; }
+    .container { display: flex; height: 100vh; }
+    .sidebar { width: 340px; padding: 20px; background: #fff; border-right: 1px solid #ddd; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+    .sidebar h2 { font-size: 1.1rem; border-bottom: 2px solid #4a90e2; padding-bottom: 6px; margin-bottom: 4px; }
+    .sidebar h3 { font-size: 0.9rem; color: #4a90e2; margin-top: 8px; }
+    .input-group { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: bold; }
+    input[type="file"], input[type="text"], input[type="color"] { padding: 6px; border: 1px solid #ccc; border-radius: 4px; }
+    .color-inputs { display: flex; gap: 6px; }
+    .color-inputs input[type="color"] { width: 100%; height: 32px; padding: 0; cursor: pointer; }
+    button { padding: 10px; background: #4a90e2; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+    button:hover { background: #357abd; }
+    .btn-save { margin-top: auto; background: #2ec4b6; font-size: 14px; padding: 12px; }
+    .btn-save:hover { background: #239b90; }
+    .canvas-wrapper { flex: 1; display: flex; justify-content: center; align-items: center; padding: 20px; overflow: auto; }
+    #container { background: #fff; box-shadow: 0 4px 15px rgba(0,0,0,0.15); border-radius: 4px; }
   </style>
 </head>
 <body>
-
   <div class="container">
-    <!-- 왼쪽 조작 패널 -->
     <div class="sidebar">
       <h2>🎨 페어틀 메이커</h2>
-      
-      <div class="upload-group">
-        <label>1. 메인 페어 (Center)</label>
-        <input type="file" id="upload-main" accept="image/*">
+
+      <h3>메인 페어 (중앙)</h3>
+      <div class="input-group"><label>중앙 일러스트</label><input type="file" id="up-main" accept="image/*"></div>
+
+      <h3>캐릭터 1 (좌측)</h3>
+      <div class="input-group"><label>글 설명</label><input type="text" id="txt-desc-1" placeholder="캐릭터 1 설명"></div>
+      <div class="input-group">
+        <label>컬러 팔레트 (3색)</label>
+        <div class="color-inputs">
+          <input type="color" id="col-1-1" value="#ffadad">
+          <input type="color" id="col-1-2" value="#ffd6a5">
+          <input type="color" id="col-1-3" value="#fdffb6">
+        </div>
       </div>
+      <div class="input-group"><label>두상</label><input type="file" id="up-head-1" accept="image/*"></div>
+      <div class="input-group"><label>전신 (메인)</label><input type="file" id="up-full-1" accept="image/*"></div>
+      <div class="input-group"><label>추가 슬롯 (?)</label><input type="file" id="up-etc-1" accept="image/*"></div>
+      <div class="input-group"><label>동물화</label><input type="file" id="up-ani-1" accept="image/*"></div>
+      <div class="input-group"><label>서브 전신</label><input type="file" id="up-sub-1" accept="image/*"></div>
 
-      <div class="upload-group">
-        <label>2. LD 두상 (Top-Left)</label>
-        <input type="file" id="upload-ld-head" accept="image/*">
+      <h3>캐릭터 2 (우측)</h3>
+      <div class="input-group"><label>글 설명</label><input type="text" id="txt-desc-2" placeholder="캐릭터 2 설명"></div>
+      <div class="input-group">
+        <label>컬러 팔레트 (3색)</label>
+        <div class="color-inputs">
+          <input type="color" id="col-2-1" value="#caffbf">
+          <input type="color" id="col-2-2" value="#9bf6ff">
+          <input type="color" id="col-2-3" value="#a0c4ff">
+        </div>
       </div>
+      <div class="input-group"><label>두상</label><input type="file" id="up-head-2" accept="image/*"></div>
+      <div class="input-group"><label>전신 (메인)</label><input type="file" id="up-full-2" accept="image/*"></div>
+      <div class="input-group"><label>추가 슬롯 (?)</label><input type="file" id="up-etc-2" accept="image/*"></div>
+      <div class="input-group"><label>동물화</label><input type="file" id="up-ani-2" accept="image/*"></div>
+      <div class="input-group"><label>서브 전신</label><input type="file" id="up-sub-2" accept="image/*"></div>
 
-      <div class="upload-group">
-        <label>3. SD 전신 (Top-Right)</label>
-        <input type="file" id="upload-sd" accept="image/*">
-      </div>
+      <h3>하단 정보</h3>
+      <div class="input-group"><label>테마곡</label><input type="text" id="txt-theme" placeholder="🎵 테마곡 제목 / 가수"></div>
+      <div class="input-group"><label>관계성 요약 (?)</label><input type="text" id="txt-relation" placeholder="💬 관계성 한 줄 요약"></div>
 
-      <div class="upload-group">
-        <label>4. 동물화 (Bottom-Left)</label>
-        <input type="file" id="upload-animal" accept="image/*">
-      </div>
-
-      <hr style="border: 0; border-top: 1px solid #eee;">
-
-      <div class="text-group">
-        <label>캐릭터 이름 / 문구</label>
-        <input type="text" id="text-input" placeholder="이름을 입력하세요">
-        <button id="btn-add-text">텍스트 추가</button>
-      </div>
-
-      <button id="btn-export" class="btn-save">🖼️ PNG 이미지 저장</button>
+      <button id="btn-save" class="btn-save">🖼️ PNG 저장하기</button>
     </div>
 
-    <!-- 오른쪽 캔버스 출력 영역 -->
     <div class="canvas-wrapper">
       <div id="container"></div>
     </div>
   </div>
 
   <script>
-    // 캔버스 크기 설정 (비율 4:3 기준 1000x750)
-    const WIDTH = 1000;
-    const HEIGHT = 750;
+    const WIDTH = 1200;
+    const HEIGHT = 700;
 
-    const stage = new Konva.Stage({
-      container: 'container',
-      width: WIDTH,
-      height: HEIGHT,
-    });
-
-    // 레이어 순서 등록 (배경 -> 이미지 -> 가이드/프레임 -> 텍스트)
+    const stage = new Konva.Stage({ container: 'container', width: WIDTH, height: HEIGHT });
     const bgLayer = new Konva.Layer();
     const imageLayer = new Konva.Layer();
     const frameLayer = new Konva.Layer();
     const textLayer = new Konva.Layer();
-
     stage.add(bgLayer, imageLayer, frameLayer, textLayer);
 
-    // 이미지 조작 컨트롤러 (Transformer)
-    const tr = new Konva.Transformer({
-      keepRatio: true,
-      enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right'],
-      borderStroke: '#4a90e2',
-      anchorFill: '#ffffff',
-      anchorStroke: '#4a90e2',
-      anchorSize: 8
-    });
+    const tr = new Konva.Transformer({ keepRatio: true });
     imageLayer.add(tr);
 
-    // 바탕 흰색 배경
-    const bgRect = new Konva.Rect({
-      x: 0,
-      y: 0,
-      width: WIDTH,
-      height: HEIGHT,
-      fill: '#ffffff',
+    bgLayer.add(new Konva.Rect({ x: 0, y: 0, width: WIDTH, height: HEIGHT, fill: '#ffffff' }));
+
+    // 배치 틀 (스케치 구도 반영)
+    const boxes = [
+      // 좌측 (캐릭터 1)
+      { id: 'h1', x: 20, y: 20, w: 120, h: 130, label: '두상' },
+      { id: 'f1', x: 20, y: 160, w: 120, h: 420, label: '전신' },
+      { id: 'd1', x: 155, y: 20, w: 120, h: 40, label: '글 설명', type: 'text' },
+      { id: 'p1', x: 155, y: 70, w: 120, h: 30, label: '팔레트', type: 'palette_1' },
+      { id: 'e1', x: 155, y: 110, w: 120, h: 100, label: '?' },
+      { id: 'a1', x: 155, y: 220, w: 120, h: 100, label: '동물화' },
+      { id: 's1', x: 155, y: 330, w: 120, h: 250, label: '전신' },
+
+      // 중앙 메인
+      { id: 'm', x: 290, y: 20, w: 620, h: 560, label: '메인 페어' },
+
+      // 우측 (캐릭터 2)
+      { id: 'd2', x: 925, y: 20, w: 120, h: 40, label: '글 설명', type: 'text' },
+      { id: 'p2', x: 925, y: 70, w: 120, h: 30, label: '팔레트', type: 'palette_2' },
+      { id: 'e2', x: 925, y: 110, w: 120, h: 100, label: '?' },
+      { id: 'a2', x: 925, y: 220, w: 120, h: 100, label: '동물화' },
+      { id: 's2', x: 925, y: 330, w: 120, h: 250, label: '전신' },
+      { id: 'h2', x: 1060, y: 20, w: 120, h: 130, label: '두상' },
+      { id: 'f2', x: 1060, y: 160, w: 120, h: 420, label: '전신' },
+
+      // 하단
+      { id: 'tm', x: 20, y: 595, w: 560, h: 85, label: '테마곡', type: 'text' },
+      { id: 'rel', x: 620, y: 595, w: 560, h: 85, label: '?', type: 'text' }
+    ];
+
+    const paletteNodes = {};
+
+    boxes.forEach(b => {
+      frameLayer.add(new Konva.Rect({
+        x: b.x, y: b.y, width: b.w, height: b.h,
+        stroke: '#bbb', strokeWidth: 1.5, cornerRadius: 4
+      }));
+      frameLayer.add(new Konva.Text({
+        x: b.x + 5, y: b.y + 5, text: b.label, fontSize: 11, fill: '#aaa'
+      }));
+
+      // 팔레트 렌더링
+      if (b.type === 'palette_1' || b.type === 'palette_2') {
+        const pGroup = new Konva.Group({ x: b.x + 5, y: b.y + 5 });
+        paletteNodes[b.type] = [];
+        for (let i = 0; i < 3; i++) {
+          const rect = new Konva.Rect({
+            x: i * 36, y: 0, width: 30, height: 20,
+            fill: '#eee', stroke: '#999', strokeWidth: 1, cornerRadius: 3
+          });
+          pGroup.add(rect);
+          paletteNodes[b.type].push(rect);
+        }
+        frameLayer.add(pGroup);
+      }
     });
-    bgLayer.add(bgRect);
 
-    // 구역 분할 가이드선 생성
-    function drawGuideLines() {
-      const lineStyle = { stroke: '#cccccc', strokeWidth: 1.5, dash: [6, 6] };
-      const textStyle = { fontSize: 13, fill: '#aaaaaa', fontFamily: 'sans-serif' };
-
-      // LD 두상
-      frameLayer.add(new Konva.Rect({ x: 20, y: 20, width: 280, height: 340, ...lineStyle }));
-      frameLayer.add(new Konva.Text({ x: 30, y: 30, text: '[ LD 두상 영역 ]', ...textStyle }));
-
-      // SD 전신
-      frameLayer.add(new Konva.Rect({ x: 700, y: 20, width: 280, height: 340, ...lineStyle }));
-      frameLayer.add(new Konva.Text({ x: 710, y: 30, text: '[ SD 전신 영역 ]', ...textStyle }));
-
-      // 동물화
-      frameLayer.add(new Konva.Rect({ x: 20, y: 380, width: 280, height: 340, ...lineStyle }));
-      frameLayer.add(new Konva.Text({ x: 30, y: 390, text: '[ 동물화 영역 ]', ...textStyle }));
-
-      // 메인 페어
-      frameLayer.add(new Konva.Rect({ x: 320, y: 20, width: 360, height: 700, ...lineStyle }));
-      frameLayer.add(new Konva.Text({ x: 330, y: 30, text: '[ 메인 페어 영역 ]', ...textStyle }));
-
-      frameLayer.draw();
-    }
-    drawGuideLines();
-
-    // 이미지 업로드 처리 함수
-    function handleImageUpload(inputId, defaultX, defaultY) {
-      document.getElementById(inputId).addEventListener('change', function (e) {
+    // 이미지 업로드 로직
+    function bindImage(inputId, boxId) {
+      const box = boxes.find(b => b.id === boxId);
+      document.getElementById(inputId).addEventListener('change', e => {
         const file = e.target.files[0];
         if (!file) return;
-
         const reader = new FileReader();
-        reader.onload = function (event) {
-          const imgObj = new Image();
-          imgObj.src = event.target.result;
-
-          imgObj.onload = function () {
-            const konvaImg = new Konva.Image({
-              x: defaultX,
-              y: defaultY,
-              image: imgObj,
-              draggable: true,
+        reader.onload = ev => {
+          const img = new Image();
+          img.src = ev.target.result;
+          img.onload = () => {
+            const kImg = new Konva.Image({
+              x: box.x + 5, y: box.y + 5, image: img, draggable: true
             });
-
-            // 업로드 시 너비 250px에 맞춰 자동 비율 축소
-            const scale = 250 / imgObj.width;
-            konvaImg.scale({ x: scale, y: scale });
-
-            // 클릭 시 조절용 프레임(Transformer) 활성화
-            konvaImg.on('click tap', () => {
-              tr.nodes([konvaImg]);
-              imageLayer.draw();
-            });
-
-            imageLayer.add(konvaImg);
-            tr.nodes([konvaImg]);
-            imageLayer.draw();
+            const scale = Math.min((box.w - 10) / img.width, (box.h - 10) / img.height);
+            kImg.scale({ x: scale, y: scale });
+            kImg.on('click tap', () => tr.nodes([kImg]));
+            imageLayer.add(kImg);
+            tr.nodes([kImg]);
           };
         };
         reader.readAsDataURL(file);
       });
     }
 
-    // 각 인풋 버튼에 위치 지정 연동
-    handleImageUpload('upload-ld-head', 35, 40);
-    handleImageUpload('upload-sd', 715, 40);
-    handleImageUpload('upload-animal', 35, 400);
-    handleImageUpload('upload-main', 375, 100);
+    bindImage('up-main', 'm');
+    bindImage('up-head-1', 'h1'); bindImage('up-full-1', 'f1'); bindImage('up-etc-1', 'e1'); bindImage('up-ani-1', 'a1'); bindImage('up-sub-1', 's1');
+    bindImage('up-head-2', 'h2'); bindImage('up-full-2', 'f2'); bindImage('up-etc-2', 'e2'); bindImage('up-ani-2', 'a2'); bindImage('up-sub-2', 's2');
 
-    // 바탕을 클릭하면 선택(조절점) 해제
-    stage.on('click tap', function (e) {
-      if (e.target === stage || e.target === bgRect) {
-        tr.nodes([]);
-        imageLayer.draw();
-      }
-    });
-
-    // 텍스트 추가 기능
-    document.getElementById('btn-add-text').addEventListener('click', () => {
-      const input = document.getElementById('text-input');
-      const val = input.value;
-      if (!val) return;
-
-      const text = new Konva.Text({
-        x: 350,
-        y: 680,
-        text: val,
-        fontSize: 22,
-        fontFamily: 'sans-serif',
-        fontStyle: 'bold',
-        fill: '#333333',
-        draggable: true,
+    // 텍스트 바인딩
+    const textNodes = {};
+    function bindText(inputId, boxId, defaultText) {
+      const box = boxes.find(b => b.id === boxId);
+      const tNode = new Konva.Text({
+        x: box.x + 10, y: box.y + 12, text: defaultText,
+        fontSize: 13, fill: '#333', width: box.w - 20, wrap: 'char'
       });
+      textLayer.add(tNode);
+      textNodes[inputId] = tNode;
 
-      textLayer.add(text);
-      textLayer.draw();
-      input.value = ''; // 입력창 초기화
+      document.getElementById(inputId).addEventListener('input', e => {
+        tNode.text(e.target.value || defaultText);
+      });
+    }
+
+    bindText('txt-desc-1', 'd1', '설명을 입력하세요');
+    bindText('txt-desc-2', 'd2', '설명을 입력하세요');
+    bindText('txt-theme', 'tm', '🎵 테마곡 정보');
+    bindText('txt-relation', 'rel', '💬 관계성 / 한 줄 요약');
+
+    // 팔레트 색상 연동
+    function bindPalette(groupId, keys) {
+      keys.forEach((key, idx) => {
+        document.getElementById(key).addEventListener('input', e => {
+          paletteNodes[groupId][idx].fill(e.target.value);
+        });
+        paletteNodes[groupId][idx].fill(document.getElementById(key).value);
+      });
+    }
+    bindPalette('palette_1', ['col-1-1', 'col-1-2', 'col-1-3']);
+    bindPalette('palette_2', ['col-2-1', 'col-2-2', 'col-2-3']);
+
+    stage.on('click tap', e => {
+      if (e.target === stage || e.target.helpers) tr.nodes([]);
     });
 
-    // 고화질 PNG 저장 기능
-    document.getElementById('btn-export').addEventListener('click', () => {
-      tr.nodes([]); // 선택 테두리 제거
-      imageLayer.draw();
-
-      // pixelRatio: 2 -> 고화질(2000x1500) 해상도로 내보내기
+    document.getElementById('btn-save').addEventListener('click', () => {
+      tr.nodes([]);
       const dataURL = stage.toDataURL({ pixelRatio: 2 });
       const link = document.createElement('a');
       link.download = 'pair.png';
       link.href = dataURL;
-      document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
     });
   </script>
 </body>
