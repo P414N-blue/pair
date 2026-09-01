@@ -13,7 +13,8 @@
     .sidebar h2 { font-size: 1.1rem; border-bottom: 2px solid #4a90e2; padding-bottom: 6px; margin-bottom: 4px; }
     .sidebar h3 { font-size: 0.9rem; color: #4a90e2; margin-top: 8px; }
     .input-group { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: bold; }
-    input[type="file"], input[type="text"], input[type="color"] { padding: 6px; border: 1px solid #ccc; border-radius: 4px; }
+    input[type="file"], input[type="text"], input[type="color"], textarea { padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: inherit; }
+    textarea { height: 60px; resize: vertical; }
     .color-inputs { display: flex; gap: 6px; }
     .color-inputs input[type="color"] { width: 100%; height: 32px; padding: 0; cursor: pointer; border: none; background: none; }
     button { padding: 10px; background: #4a90e2; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
@@ -28,14 +29,14 @@
 <body>
   <div class="container">
     <div class="sidebar">
-      <h2>🎨 페어틀 메이커</h2>
-      <p class="guide-text">💡 이미지 위에서 **드래그로 이동**, **마우스 휠로 확대/축소**가 가능합니다.</p>
+      <h2>페어틀 메이커</h2>
+      <p class="guide-text">이미지는 드래그로 이동, 마우스 휠로 확대/축소가 가능합니다.</p>
 
       <h3>메인 페어 (중앙)</h3>
       <div class="input-group"><label>중앙 일러스트</label><input type="file" id="up-main" accept="image/*"></div>
 
       <h3>캐릭터 1 (좌측)</h3>
-      <div class="input-group"><label>글 설명</label><input type="text" id="txt-desc-1" placeholder="캐릭터 1 설명"></div>
+      <div class="input-group"><label>글 설명</label><textarea id="txt-desc-1" placeholder="캐릭터 1 설명"></textarea></div>
       <div class="input-group">
         <label>컬러 팔레트</label>
         <div class="color-inputs">
@@ -51,7 +52,7 @@
       <div class="input-group"><label>SD 전신</label><input type="file" id="up-sub-1" accept="image/*"></div>
 
       <h3>캐릭터 2 (우측)</h3>
-      <div class="input-group"><label>글 설명</label><input type="text" id="txt-desc-2" placeholder="캐릭터 2 설명"></div>
+      <div class="input-group"><label>글 설명</label><textarea id="txt-desc-2" placeholder="캐릭터 2 설명"></textarea></div>
       <div class="input-group">
         <label>컬러 팔레트</label>
         <div class="color-inputs">
@@ -71,7 +72,7 @@
       <div class="input-group"><label>테마곡 시간</label><input type="text" id="txt-time" value="1:24 / 3:45" placeholder="1:24 / 3:45"></div>
       <div class="input-group"><label>관계성 요약</label><input type="text" id="txt-relation" placeholder="관계성 한 줄 요약"></div>
 
-      <button id="btn-save" class="btn-save">🖼️ PNG 저장하기</button>
+      <button id="btn-save" class="btn-save">PNG 저장하기</button>
     </div>
 
     <div class="canvas-wrapper">
@@ -93,7 +94,6 @@
     bgLayer.add(new Konva.Rect({ x: 0, y: 0, width: WIDTH, height: HEIGHT, fill: '#ffffff' }));
 
     const boxes = [
-      // 좌측 (캐릭터 1)
       { id: 'h1', x: 20, y: 20, w: 150, h: 140, label: '두상' },
       { id: 'f1', x: 20, y: 170, w: 150, h: 410, label: '전신' },
       { id: 'd1', x: 180, y: 20, w: 120, h: 100, label: '글 설명', type: 'text' },
@@ -102,10 +102,8 @@
       { id: 'a1', x: 180, y: 290, w: 120, h: 110, label: '동물화' },
       { id: 's1', x: 180, y: 410, w: 120, h: 170, label: 'SD 전신' },
 
-      // 중앙 메인
       { id: 'm', x: 310, y: 20, w: 480, h: 560, label: '메인 페어' },
 
-      // 우측 (캐릭터 2)
       { id: 'd2', x: 800, y: 20, w: 120, h: 100, label: '글 설명', type: 'text' },
       { id: 'p2', x: 800, y: 130, w: 120, h: 30, label: '팔레트', type: 'palette_2' },
       { id: 'e2', x: 800, y: 170, w: 120, h: 110, label: '오브젝트' },
@@ -114,7 +112,6 @@
       { id: 'h2', x: 930, y: 20, w: 150, h: 140, label: '두상' },
       { id: 'f2', x: 930, y: 170, w: 150, h: 410, label: '전신' },
 
-      // 하단
       { id: 'tm', x: 20, y: 595, w: 510, h: 85, label: '테마곡', type: 'player' },
       { id: 'rel', x: 550, y: 595, w: 530, h: 85, label: '관계성 요약', type: 'text' }
     ];
@@ -122,7 +119,7 @@
     const paletteNodes = {};
     const boxGroups = {};
     const labelNodes = {};
-    let timeTextNode = null; // 시간 텍스트 참조용 변수
+    let timeTextNode = null;
 
     boxes.forEach(b => {
       const group = new Konva.Group({
@@ -160,7 +157,6 @@
       }
     });
 
-    // 플레이어 UI 생성
     const tmBox = boxes.find(b => b.id === 'tm');
     if (tmBox) {
       const pGroup = new Konva.Group({ x: tmBox.x, y: tmBox.y });
@@ -170,7 +166,6 @@
       pGroup.add(new Konva.Rect({ x: 50, y: 48, width: (tmBox.w - 130) * 0.4, height: 6, fill: '#4a90e2', cornerRadius: 3 }));
       pGroup.add(new Konva.Circle({ x: 50 + (tmBox.w - 130) * 0.4, y: 51, radius: 6, fill: '#4a90e2' }));
 
-      // 수정 가능한 타임스탬프 텍스트 노드
       timeTextNode = new Konva.Text({
         x: tmBox.w - 75, y: 44, text: '1:24 / 3:45', fontSize: 10, fill: '#888', align: 'right'
       });
@@ -178,7 +173,6 @@
       frameLayer.add(pGroup);
     }
 
-    // 시간 입력란 이벤트 바인딩
     document.getElementById('txt-time').addEventListener('input', e => {
       if (timeTextNode) {
         timeTextNode.text(e.target.value.trim());
@@ -186,7 +180,7 @@
       }
     });
 
-    // 이미지 바인딩
+    // 이미지 바인딩 및 이동범위 제한 (여백 방지)
     function bindImage(inputId, boxId) {
       const box = boxes.find(b => b.id === boxId);
       const group = boxGroups[boxId];
@@ -202,20 +196,56 @@
           img.onload = () => {
             group.destroyChildren();
 
-            const kImg = new Konva.Image({ x: 0, y: 0, image: img, draggable: true });
             const scale = Math.max(box.w / img.width, box.h / img.height);
+
+            const kImg = new Konva.Image({
+              x: 0, y: 0, image: img, draggable: true,
+              dragBoundFunc: function(pos) {
+                // 그룹(박스) 내 절대 좌표 계산
+                const groupAbs = group.getAbsolutePosition();
+                const curScale = this.scaleX();
+                const curW = img.width * curScale;
+                const curH = img.height * curScale;
+
+                const minX = groupAbs.x + box.w - curW;
+                const maxX = groupAbs.x;
+                const minY = groupAbs.y + box.h - curH;
+                const maxY = groupAbs.y;
+
+                return {
+                  x: Math.min(Math.max(pos.x, minX), maxX),
+                  y: Math.min(Math.max(pos.y, minY), maxY)
+                };
+              }
+            });
+
             kImg.scale({ x: scale, y: scale });
 
+            // 휠 Zoom 처리 (박스 크기 이하로 작아지지 못하게 제한)
             kImg.on('wheel', e => {
               e.evt.preventDefault();
               const oldScale = kImg.scaleX();
               const scaleBy = 1.08;
-              const newScale = e.evt.deltaY < 0 ? oldScale * scaleBy : oldScale / scaleBy;
+              let newScale = e.evt.deltaY < 0 ? oldScale * scaleBy : oldScale / scaleBy;
 
-              if (newScale * img.width >= box.w / 2 && newScale * img.height >= box.h / 2) {
-                kImg.scale({ x: newScale, y: newScale });
-                imageLayer.draw();
-              }
+              const minScale = Math.max(box.w / img.width, box.h / img.height);
+              if (newScale < minScale) newScale = minScale;
+
+              kImg.scale({ x: newScale, y: newScale });
+
+              // 줌 변경 후 위치 경계 보정
+              let newX = kImg.x();
+              let newY = kImg.y();
+              const curW = img.width * newScale;
+              const curH = img.height * newScale;
+
+              if (newX < box.w - curW) newX = box.w - curW;
+              if (newX > 0) newX = 0;
+              if (newY < box.h - curH) newY = box.h - curH;
+              if (newY > 0) newY = 0;
+
+              kImg.position({ x: newX, y: newY });
+              imageLayer.draw();
             });
 
             group.add(kImg);
@@ -235,22 +265,22 @@
     bindImage('up-head-1', 'h1'); bindImage('up-full-1', 'f1'); bindImage('up-etc-1', 'e1'); bindImage('up-ani-1', 'a1'); bindImage('up-sub-1', 's1');
     bindImage('up-head-2', 'h2'); bindImage('up-full-2', 'f2'); bindImage('up-etc-2', 'e2'); bindImage('up-ani-2', 'a2'); bindImage('up-sub-2', 's2');
 
-    // 텍스트 바인딩
+    // 텍스트 바인딩 (textarea 입력 대응)
     function bindText(inputId, boxId, defaultText, offsetY = 12) {
       const box = boxes.find(b => b.id === boxId);
       const tNode = new Konva.Text({
         x: box.x + 10, y: box.y + offsetY, text: '',
-        fontSize: 12, fill: '#333', width: box.w - 20, wrap: 'char'
+        fontSize: 12, fill: '#333', width: box.w - 20, lineHeight: 1.3
       });
       textLayer.add(tNode);
 
       document.getElementById(inputId).addEventListener('input', e => {
-        const val = e.target.value.trim();
+        const val = e.target.value;
         tNode.text(val);
         textLayer.draw();
 
         if (labelNodes[boxId]) {
-          labelNodes[boxId].visible(val === '');
+          labelNodes[boxId].visible(val.trim() === '');
           frameLayer.batchDraw();
         }
       });
@@ -261,11 +291,9 @@
     bindText('txt-theme', 'tm', '', 18);
     bindText('txt-relation', 'rel', '');
 
-    // 팔레트 연동
     function bindPalette(groupId, keys) {
       keys.forEach((key, idx) => {
         const inputEl = document.getElementById(key);
-        
         inputEl.addEventListener('input', e => {
           if (paletteNodes[groupId] && paletteNodes[groupId][idx]) {
             paletteNodes[groupId][idx].fill(String(e.target.value));
@@ -283,7 +311,6 @@
     bindPalette('palette_2', ['col-2-1', 'col-2-2', 'col-2-3']);
     frameLayer.draw();
 
-    // 저장 기능
     document.getElementById('btn-save').addEventListener('click', () => {
       const dataURL = stage.toDataURL({ pixelRatio: 2 });
       const link = document.createElement('a');
