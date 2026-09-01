@@ -22,12 +22,14 @@
     .btn-save:hover { background: #239b90; }
     .canvas-wrapper { flex: 1; display: flex; justify-content: center; align-items: center; padding: 20px; overflow: auto; }
     #container { background: #fff; box-shadow: 0 4px 15px rgba(0,0,0,0.15); border-radius: 4px; }
+    .guide-text { font-size: 11px; color: #666; font-weight: normal; }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="sidebar">
       <h2>🎨 페어틀 메이커</h2>
+      <p class="guide-text">💡 이미지 위에서 **드래그로 이동**, **마우스 휠로 확대/축소**가 가능합니다.</p>
 
       <h3>메인 페어 (중앙)</h3>
       <div class="input-group"><label>중앙 일러스트</label><input type="file" id="up-main" accept="image/*"></div>
@@ -77,7 +79,8 @@
   </div>
 
   <script>
-    const WIDTH = 1200;
+    // 메인 폭을 줄여 가로 전체 크기를 1060으로 축소
+    const WIDTH = 1060;
     const HEIGHT = 700;
 
     const stage = new Konva.Stage({ container: 'container', width: WIDTH, height: HEIGHT });
@@ -87,12 +90,9 @@
     const textLayer = new Konva.Layer();
     stage.add(bgLayer, imageLayer, frameLayer, textLayer);
 
-    const tr = new Konva.Transformer({ keepRatio: true });
-    imageLayer.add(tr);
-
     bgLayer.add(new Konva.Rect({ x: 0, y: 0, width: WIDTH, height: HEIGHT, fill: '#ffffff' }));
 
-    // 배치 틀 (스케치 구도 반영)
+    // 배치 틀 (메인 영역 가로 폭 480으로 조정)
     const boxes = [
       // 좌측 (캐릭터 1)
       { id: 'h1', x: 20, y: 20, w: 120, h: 130, label: '두상' },
@@ -103,35 +103,50 @@
       { id: 'a1', x: 155, y: 220, w: 120, h: 100, label: '동물화' },
       { id: 's1', x: 155, y: 330, w: 120, h: 250, label: '전신' },
 
-      // 중앙 메인
-      { id: 'm', x: 290, y: 20, w: 620, h: 560, label: '메인 페어' },
+      // 중앙 메인 (가로 폭 축소: 620 -> 480)
+      { id: 'm', x: 290, y: 20, w: 480, h: 560, label: '메인 페어' },
 
       // 우측 (캐릭터 2)
-      { id: 'd2', x: 925, y: 20, w: 120, h: 40, label: '글 설명', type: 'text' },
-      { id: 'p2', x: 925, y: 70, w: 120, h: 30, label: '팔레트', type: 'palette_2' },
-      { id: 'e2', x: 925, y: 110, w: 120, h: 100, label: '?' },
-      { id: 'a2', x: 925, y: 220, w: 120, h: 100, label: '동물화' },
-      { id: 's2', x: 925, y: 330, w: 120, h: 250, label: '전신' },
-      { id: 'h2', x: 1060, y: 20, w: 120, h: 130, label: '두상' },
-      { id: 'f2', x: 1060, y: 160, w: 120, h: 420, label: '전신' },
+      { id: 'd2', x: 785, y: 20, w: 120, h: 40, label: '글 설명', type: 'text' },
+      { id: 'p2', x: 785, y: 70, w: 120, h: 30, label: '팔레트', type: 'palette_2' },
+      { id: 'e2', x: 785, y: 110, w: 120, h: 100, label: '?' },
+      { id: 'a2', x: 785, y: 220, w: 120, h: 100, label: '동물화' },
+      { id: 's2', x: 785, y: 330, w: 120, h: 250, label: '전신' },
+      { id: 'h2', x: 920, y: 20, w: 120, h: 130, label: '두상' },
+      { id: 'f2', x: 920, y: 160, w: 120, h: 420, label: '전신' },
 
       // 하단
-      { id: 'tm', x: 20, y: 595, w: 560, h: 85, label: '테마곡', type: 'text' },
-      { id: 'rel', x: 620, y: 595, w: 560, h: 85, label: '?', type: 'text' }
+      { id: 'tm', x: 20, y: 595, w: 490, h: 85, label: '테마곡', type: 'text' },
+      { id: 'rel', x: 550, y: 595, w: 490, h: 85, label: '?', type: 'text' }
     ];
 
     const paletteNodes = {};
+    const boxGroups = {};
 
     boxes.forEach(b => {
+      // 각 박스 영역을 마스크(Clip) 처리하는 그룹 생성
+      const group = new Konva.Group({
+        x: b.x,
+        y: b.y,
+        width: b.w,
+        height: b.h,
+        clipFunc: function(ctx) {
+          ctx.rect(0, 0, b.w, b.h);
+        }
+      });
+      imageLayer.add(group);
+      boxGroups[b.id] = group;
+
+      // 외곽선 및 라벨
       frameLayer.add(new Konva.Rect({
         x: b.x, y: b.y, width: b.w, height: b.h,
-        stroke: '#bbb', strokeWidth: 1.5, cornerRadius: 4
+        stroke: '#bbb', strokeWidth: 1.5, cornerRadius: 4, listening: false
       }));
       frameLayer.add(new Konva.Text({
-        x: b.x + 5, y: b.y + 5, text: b.label, fontSize: 11, fill: '#aaa'
+        x: b.x + 5, y: b.y + 5, text: b.label, fontSize: 11, fill: '#aaa', listening: false
       }));
 
-      // 팔레트 렌더링
+      // 팔레트 생성
       if (b.type === 'palette_1' || b.type === 'palette_2') {
         const pGroup = new Konva.Group({ x: b.x + 5, y: b.y + 5 });
         paletteNodes[b.type] = [];
@@ -147,25 +162,49 @@
       }
     });
 
-    // 이미지 업로드 로직
+    // 이미지 바인딩 (박스 내부 마스크 적용 및 휠 스케일링)
     function bindImage(inputId, boxId) {
       const box = boxes.find(b => b.id === boxId);
+      const group = boxGroups[boxId];
+
       document.getElementById(inputId).addEventListener('change', e => {
         const file = e.target.files[0];
         if (!file) return;
+
         const reader = new FileReader();
         reader.onload = ev => {
           const img = new Image();
           img.src = ev.target.result;
           img.onload = () => {
+            group.destroyChildren(); // 기존 이미지 삭제
+
             const kImg = new Konva.Image({
-              x: box.x + 5, y: box.y + 5, image: img, draggable: true
+              x: 0,
+              y: 0,
+              image: img,
+              draggable: true
             });
-            const scale = Math.min((box.w - 10) / img.width, (box.h - 10) / img.height);
+
+            // 초기 가득 차게 맞춤
+            const scale = Math.max(box.w / img.width, box.h / img.height);
             kImg.scale({ x: scale, y: scale });
-            kImg.on('click tap', () => tr.nodes([kImg]));
-            imageLayer.add(kImg);
-            tr.nodes([kImg]);
+
+            // 마우스 휠 확대/축소 로직
+            kImg.on('wheel', e => {
+              e.evt.preventDefault();
+              const oldScale = kImg.scaleX();
+              const scaleBy = 1.08;
+              const newScale = e.evt.deltaY < 0 ? oldScale * scaleBy : oldScale / scaleBy;
+
+              // 최소 크기 제한 (박스 채움 유지)
+              if (newScale * img.width >= box.w / 2 && newScale * img.height >= box.h / 2) {
+                kImg.scale({ x: newScale, y: newScale });
+                imageLayer.draw();
+              }
+            });
+
+            group.add(kImg);
+            imageLayer.draw();
           };
         };
         reader.readAsDataURL(file);
@@ -177,7 +216,6 @@
     bindImage('up-head-2', 'h2'); bindImage('up-full-2', 'f2'); bindImage('up-etc-2', 'e2'); bindImage('up-ani-2', 'a2'); bindImage('up-sub-2', 's2');
 
     // 텍스트 바인딩
-    const textNodes = {};
     function bindText(inputId, boxId, defaultText) {
       const box = boxes.find(b => b.id === boxId);
       const tNode = new Konva.Text({
@@ -185,10 +223,10 @@
         fontSize: 13, fill: '#333', width: box.w - 20, wrap: 'char'
       });
       textLayer.add(tNode);
-      textNodes[inputId] = tNode;
 
       document.getElementById(inputId).addEventListener('input', e => {
         tNode.text(e.target.value || defaultText);
+        textLayer.draw();
       });
     }
 
@@ -197,11 +235,12 @@
     bindText('txt-theme', 'tm', '🎵 테마곡 정보');
     bindText('txt-relation', 'rel', '💬 관계성 / 한 줄 요약');
 
-    // 팔레트 색상 연동
+    // 팔레트 연동
     function bindPalette(groupId, keys) {
       keys.forEach((key, idx) => {
         document.getElementById(key).addEventListener('input', e => {
           paletteNodes[groupId][idx].fill(e.target.value);
+          frameLayer.draw();
         });
         paletteNodes[groupId][idx].fill(document.getElementById(key).value);
       });
@@ -209,15 +248,11 @@
     bindPalette('palette_1', ['col-1-1', 'col-1-2', 'col-1-3']);
     bindPalette('palette_2', ['col-2-1', 'col-2-2', 'col-2-3']);
 
-    stage.on('click tap', e => {
-      if (e.target === stage || e.target.helpers) tr.nodes([]);
-    });
-
+    // 저장
     document.getElementById('btn-save').addEventListener('click', () => {
-      tr.nodes([]);
       const dataURL = stage.toDataURL({ pixelRatio: 2 });
       const link = document.createElement('a');
-      link.download = 'pair.png';
+      link.download = 'pair-frame.png';
       link.href = dataURL;
       link.click();
     });
