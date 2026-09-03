@@ -121,12 +121,11 @@
     const boxGroups = {};
     const labelNodes = {};
     
-    // 플레이어 관련 노드 참조
     let playerBtnCircle = null;
     let progressBarActive = null;
     let progressHandle = null;
     let timeTextNode = null;
-    const PLAYER_BAR_WIDTH_MAX = 510 - 130; // tmBox.w - 130
+    const PLAYER_BAR_WIDTH_MAX = 510 - 130;
 
     boxes.forEach(b => {
       const group = new Konva.Group({
@@ -164,33 +163,31 @@
       }
     });
 
-    // 플레이어 UI 생성
+    // 플레이어 UI 생성 (위치 조정)
     const tmBox = boxes.find(b => b.id === 'tm');
     if (tmBox) {
       const pGroup = new Konva.Group({ x: tmBox.x, y: tmBox.y });
       
-      // 재생 버튼
-      playerBtnCircle = new Konva.Circle({ x: 25, y: 42, radius: 14, fill: '#4a90e2' });
+      // Y 좌표를 하단으로 배치 (y: 55)
+      playerBtnCircle = new Konva.Circle({ x: 25, y: 55, radius: 14, fill: '#4a90e2' });
       pGroup.add(playerBtnCircle);
-      pGroup.add(new Konva.Path({ x: 21, y: 35, data: 'M0 0 L12 7 L0 14 Z', fill: '#ffffff' }));
+      pGroup.add(new Konva.Path({ x: 21, y: 48, data: 'M0 0 L12 7 L0 14 Z', fill: '#ffffff' }));
       
-      // 배경 재생바
-      pGroup.add(new Konva.Rect({ x: 50, y: 48, width: PLAYER_BAR_WIDTH_MAX, height: 6, fill: '#e0e0e0', cornerRadius: 3 }));
+      // 배경 재생바 및 활성바 Y 좌표 수정 (y: 61)
+      pGroup.add(new Konva.Rect({ x: 50, y: 61, width: PLAYER_BAR_WIDTH_MAX, height: 6, fill: '#e0e0e0', cornerRadius: 3 }));
       
-      // 활성 재생바 및 핸들(동그라미)
-      progressBarActive = new Konva.Rect({ x: 50, y: 48, width: PLAYER_BAR_WIDTH_MAX * 0.4, height: 6, fill: '#4a90e2', cornerRadius: 3 });
-      progressHandle = new Konva.Circle({ x: 50 + PLAYER_BAR_WIDTH_MAX * 0.4, y: 51, radius: 6, fill: '#4a90e2' });
+      progressBarActive = new Konva.Rect({ x: 50, y: 61, width: PLAYER_BAR_WIDTH_MAX * 0.4, height: 6, fill: '#4a90e2', cornerRadius: 3 });
+      progressHandle = new Konva.Circle({ x: 50 + PLAYER_BAR_WIDTH_MAX * 0.4, y: 64, radius: 6, fill: '#4a90e2' });
       pGroup.add(progressBarActive);
       pGroup.add(progressHandle);
 
       timeTextNode = new Konva.Text({
-        x: tmBox.w - 75, y: 44, text: '1:24 / 3:45', fontSize: 10, fill: '#888', align: 'right'
+        x: tmBox.w - 75, y: 57, text: '1:24 / 3:45', fontSize: 10, fill: '#888', align: 'right'
       });
       pGroup.add(timeTextNode);
       frameLayer.add(pGroup);
     }
 
-    // 시간 문자열(mm:ss)을 초(second)로 변환하는 함수
     function parseTimeToSeconds(timeStr) {
       if (!timeStr) return 0;
       const parts = timeStr.trim().split(':');
@@ -202,7 +199,6 @@
       return parseFloat(timeStr) || 0;
     }
 
-    // 시간 정보에 맞춰 재생바 길이 업데이트 함수
     function updateProgressBar(timeStr) {
       if (!timeTextNode) return;
       timeTextNode.text(timeStr.trim());
@@ -229,10 +225,8 @@
       updateProgressBar(e.target.value);
     });
 
-    // 초기 재생바 상태 반영
     updateProgressBar(document.getElementById('txt-time').value);
 
-    // 플레이어 포인트 색상 변경 이벤트
     document.getElementById('col-theme').addEventListener('input', e => {
       const newColor = e.target.value;
       if (playerBtnCircle) playerBtnCircle.fill(newColor);
@@ -241,7 +235,6 @@
       frameLayer.batchDraw();
     });
 
-    // 이미지 바인딩 및 이동범위 제한 (여백 방지)
     function bindImage(inputId, boxId) {
       const box = boxes.find(b => b.id === boxId);
       const group = boxGroups[boxId];
@@ -323,7 +316,6 @@
     bindImage('up-head-1', 'h1'); bindImage('up-full-1', 'f1'); bindImage('up-etc-1', 'e1'); bindImage('up-ani-1', 'a1'); bindImage('up-sub-1', 's1');
     bindImage('up-head-2', 'h2'); bindImage('up-full-2', 'f2'); bindImage('up-etc-2', 'e2'); bindImage('up-ani-2', 'a2'); bindImage('up-sub-2', 's2');
 
-    // 텍스트 바인딩 (textarea 입력 대응)
     function bindText(inputId, boxId, defaultText, offsetY = 12) {
       const box = boxes.find(b => b.id === boxId);
       const tNode = new Konva.Text({
@@ -346,7 +338,7 @@
 
     bindText('txt-desc-1', 'd1', '');
     bindText('txt-desc-2', 'd2', '');
-    bindText('txt-theme', 'tm', '', 18);
+    bindText('txt-theme', 'tm', '', 12); // 곡명 위치 상단 12px 고정
     bindText('txt-relation', 'rel', '');
 
     function bindPalette(groupId, keys) {
